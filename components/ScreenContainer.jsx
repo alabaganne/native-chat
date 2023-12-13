@@ -25,7 +25,9 @@ const ScreenContainer = ({ children }) => {
         >
           <Gradient />
         </ButtonText>
-        <Box p="$2">{children}</Box>
+        <Box px="$2" py="$4" flexGrow={1}>
+          {children}
+        </Box>
       </ScrollView>
     </Box>
   );

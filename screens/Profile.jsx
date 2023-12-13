@@ -22,10 +22,31 @@ import ScreenContainer from '../components/ScreenContainer';
 import FeatureCard from '../components/FeatureCard';
 import { FormControlHelperText } from '@gluestack-ui/themed';
 
-const Profile = ({ navigation }: any) => {
+import * as ImagePicker from 'expo-image-picker';
+import { Image, Pressable } from 'react-native';
+
+const Profile = ({ navigation }) => {
   function handleSubmit() {
     console.log('submit');
   }
+
+  const [image, setImage] = React.useState(null);
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
   return (
     <ScreenContainer>
@@ -46,16 +67,26 @@ const Profile = ({ navigation }: any) => {
               <FormControlLabel mb="$1">
                 <FormControlLabelText>Avatar</FormControlLabelText>
               </FormControlLabel>
-              <Box
-                rounded="$full"
-                justifyContent="center"
-                alignItems="center"
-                w={75}
-                h={75}
-                bg="$indigo600"
-              >
-                <Icon as={DownloadIcon} w={25} h={25} color="$indigo100" />
-              </Box>
+              <Pressable onPress={pickImage}>
+                {image ? (
+                  <Image
+                    source={{ uri: image }}
+                    style={{ width: 75, height: 75, borderRadius: 75 }}
+                  />
+                ) : (
+                  <Box
+                    rounded="$full"
+                    justifyContent="center"
+                    alignItems="center"
+                    w={75}
+                    h={75}
+                    bg="$indigo600"
+                    onPress={pickImage}
+                  >
+                    <Icon as={DownloadIcon} w={25} h={25} color="$indigo100" />
+                  </Box>
+                )}
+              </Pressable>
             </Box>
             {/* Username */}
             <FormControlLabel mb="$1">

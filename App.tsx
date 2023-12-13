@@ -18,6 +18,7 @@ import FeatureCard from './components/FeatureCard';
 import Users from './screens/Users';
 import ScreenContainer from './components/ScreenContainer';
 import Profile from './screens/Profile';
+import Chat from './screens/Chat';
 
 const Stack = createNativeStackNavigator();
 
@@ -126,7 +127,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <GluestackUIProvider colorMode="dark" config={config}>
-        <Stack.Navigator initialRouteName="Profile">
+        <Stack.Navigator initialRouteName="Home">
           <Stack.Screen
             name="Home"
             component={Home}
@@ -144,6 +145,7 @@ export default function App() {
           />
           <Stack.Screen name="Users" component={Users} />
           <Stack.Screen name="Profile" component={Profile} />
+          <Stack.Screen name="Chat" component={Chat} />
         </Stack.Navigator>
       </GluestackUIProvider>
     </NavigationContainer>

@@ -40,7 +40,7 @@ const FeatureCard = ({ icon, name, desc, children }: Props) => {
           {desc}
         </Text>
       )}
-      <Box mt="$8">{children}</Box>
+      {children && <Box mt="$8">{children}</Box>}
     </Box>
   );
 };

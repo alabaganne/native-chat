@@ -36,7 +36,7 @@ const Register = ({ navigation }: any) => {
       alert('Please fill out all fields.');
       return;
     }
-    alert('submit');
+    console.log('submit');
   }
 
   return (

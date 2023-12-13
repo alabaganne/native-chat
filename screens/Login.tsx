@@ -29,16 +29,17 @@ const Login = ({ navigation }: any) => {
   });
 
   function handleSubmit() {
-    if (!user.email || !user.password) {
-      alert('Please fill out all fields.');
-      return;
-    }
-    alert('submit');
+    // if (!user.email || !user.password) {
+    //   alert('Please fill out all fields.');
+    //   return;
+    // }
+    console.log('submit');
+    navigation.navigate('Users');
   }
 
   return (
     <ScreenContainer>
-      <Box alignItems="center" justifyContent="center" flex={1}>
+      <Box h="$full" alignItems="center" justifyContent="center" flex={1}>
         <FeatureCard
           icon={UnlockIcon}
           name="Log In"
