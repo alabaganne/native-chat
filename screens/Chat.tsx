@@ -1,47 +1,92 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import ScreenContainer from '../components/ScreenContainer';
 import {
   Box,
   Button,
   ButtonIcon,
-  ButtonText,
   Input,
   InputField,
   MessageCircleIcon,
   ScrollView,
   Text,
 } from '@gluestack-ui/themed';
-import FeatureCard from '../components/FeatureCard';
+import { useActiveChatContext } from '../context/active-chat-context';
+import { firebase } from '../config/firebase';
+import {
+  query,
+  collection,
+  onSnapshot,
+  orderBy,
+  getDocs,
+  where,
+} from 'firebase/firestore';
+import { useAuthContext } from '../context/auth-context';
 
 interface Message {
-  id: number;
+  email: string;
   content: string;
   sender: string;
+  createdAt: Date;
 }
 
-const fakeMessages: Message[] = [
-  { id: 1, content: 'Hello', sender: 'Ala Baganne' },
-  { id: 2, content: 'Hi mate!', sender: 'You' },
-  { id: 3, content: 'How are you man?', sender: 'Ala Baganne' },
-];
-
 const Chat = () => {
+  const { activeChat } = useActiveChatContext();
   const [newMessage, setNewMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>(fakeMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const { user } = useAuthContext();
   function sendMessage() {
-    console.log('send message');
-    setMessages([
-      ...messages,
-      { id: messages.length + 1, content: newMessage, sender: 'You' },
-    ]);
-    setNewMessage('');
+    const newMessageData = {
+      email: activeChat.email,
+      content: newMessage,
+      sender: user, // Use the user object from the auth context
+      createdAt: new Date(),
+    };
+
+    setMessages([...messages, newMessageData]);
+
+    // Add the new message to Firebase
+    addMessageToFirebase(newMessageData);
   }
+
+  const addMessageToFirebase = async (messageData: Message) => {
+    try {
+      await firebase.firestore().collection('messages').add(messageData);
+      console.log('message sent');
+    } catch (error) {
+      console.error('Error adding message to Firebase:', error);
+    }
+  };
+
+  useLayoutEffect(() => {
+    const collectionRef = collection(firebase.firestore(), 'messages');
+    const q = query(collectionRef, orderBy('createdAt', 'asc'));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const updatedMessages: Message[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        updatedMessages.push({
+          email: data.email,
+          content: data.content,
+          createdAt: new Date(data.createdAt.seconds * 1000), // Convert Firestore timestamp to JavaScript Date
+          sender: data.sender,
+        });
+      });
+      setMessages(updatedMessages);
+    });
+
+    return () => unsubscribe();
+  }, []); // Include activeChat in the dependency array
 
   return (
     <ScreenContainer>
       <ScrollView h="90%" gap={10}>
         {messages.map((message) => (
-          <Text key={message.id} color="$white" fontWeight="700">
+          <Text
+            key={message.createdAt.getTime()}
+            color="$white"
+            fontWeight="700"
+          >
             {message.sender}:{' '}
             <Text color="$textDark300" size="sm">
               {message.content}

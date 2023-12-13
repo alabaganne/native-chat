@@ -21,20 +21,28 @@ import ScreenContainer from '../components/ScreenContainer';
 import FeatureCard from '../components/FeatureCard';
 import { FormControlError } from '@gluestack-ui/themed';
 import { FormControlLabelText } from '@gluestack-ui/themed';
-
+import { firebase } from '../config/firebase';
+import { useAuthContext } from '../context/auth-context';
 const Login = ({ navigation }: any) => {
-  const [user, setUser] = React.useState({
-    email: '',
-    password: '',
-  });
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  let { setUser } = useAuthContext();
 
-  function handleSubmit() {
+  async function handleSubmit() {
     // if (!user.email || !user.password) {
     //   alert('Please fill out all fields.');
     //   return;
     // }
-    console.log('submit');
-    navigation.navigate('Users');
+    console.log(email, password);
+    try {
+      const result = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, password);
+      setUser(email);
+      navigation.navigate('Users');
+    } catch (error) {
+      alert(error);
+    }
   }
 
   return (
@@ -59,7 +67,8 @@ const Login = ({ navigation }: any) => {
             <Input>
               <InputField
                 type="text"
-                defaultValue=""
+                defaultValue={email}
+                onChangeText={(text) => setEmail(text)}
                 placeholder="johndoe@example.com"
               />
             </Input>
@@ -75,7 +84,10 @@ const Login = ({ navigation }: any) => {
               <FormControlLabelText>Password</FormControlLabelText>
             </FormControlLabel>
             <Input>
-              <InputField type="password" />
+              <InputField
+                type="password"
+                onChangeText={(text) => setPassword(text)}
+              />
             </Input>
             <FormControlHelper>
               <FormControlHelperText>

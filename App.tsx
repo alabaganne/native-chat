@@ -19,7 +19,10 @@ import Users from './screens/Users';
 import ScreenContainer from './components/ScreenContainer';
 import Profile from './screens/Profile';
 import Chat from './screens/Chat';
-
+import { useEffect, useState } from 'react';
+import { firebase } from './config/firebase';
+import ActiveChatProvider from './context/active-chat-context';
+import AuthContextProvider from './context/auth-context';
 const Stack = createNativeStackNavigator();
 
 interface HomeProps {
@@ -124,29 +127,48 @@ const Home = ({ navigation }: HomeProps) => {
 };
 
 export default function App() {
+  const [initializing, setInitializing] = useState<Boolean>(true);
+  const [user, setUser] = useState<any>();
+  function onAuthStateChanged(user: any) {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  }
+
+  useEffect(() => {
+    const subscriber = firebase.auth().onAuthStateChanged(onAuthStateChanged);
+    console.log(subscriber);
+    return subscriber;
+  }, []);
+
+  if (initializing) return null;
+
   return (
     <NavigationContainer>
       <GluestackUIProvider colorMode="dark" config={config}>
-        <Stack.Navigator initialRouteName="Home">
-          <Stack.Screen
-            name="Home"
-            component={Home}
-            options={{ title: 'Home', headerShown: false }}
-          />
-          <Stack.Screen
-            name="Login"
-            component={Login}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Register"
-            component={Register}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="Users" component={Users} />
-          <Stack.Screen name="Profile" component={Profile} />
-          <Stack.Screen name="Chat" component={Chat} />
-        </Stack.Navigator>
+        <AuthContextProvider>
+          <ActiveChatProvider>
+            <Stack.Navigator initialRouteName="Home">
+              <Stack.Screen
+                name="Home"
+                component={Home}
+                options={{ title: 'Home', headerShown: false }}
+              />
+              <Stack.Screen
+                name="Login"
+                component={Login}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Register"
+                component={Register}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="Users" component={Users} />
+              <Stack.Screen name="Profile" component={Profile} />
+              <Stack.Screen name="Chat" component={Chat} />
+            </Stack.Navigator>
+          </ActiveChatProvider>
+        </AuthContextProvider>
       </GluestackUIProvider>
     </NavigationContainer>
   );

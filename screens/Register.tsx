@@ -10,33 +10,45 @@ import {
   FormControlHelper,
   FormControlHelperText,
   FormControlLabel,
-  Icon,
   Input,
   InputField,
   Text,
-  UnlockIcon,
-  VStack,
 } from '@gluestack-ui/themed';
 import React from 'react';
 import ScreenContainer from '../components/ScreenContainer';
 import FeatureCard from '../components/FeatureCard';
 import { FormControlError } from '@gluestack-ui/themed';
 import { FormControlLabelText } from '@gluestack-ui/themed';
+import { firebase } from '../config/firebase';
 
 const Register = ({ navigation }: any) => {
-  const [user, setUser] = React.useState({
+  const [userData, setUserData] = React.useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
 
-  function handleSubmit() {
-    if (!user.email || !user.password) {
+  const handleOnchange = (text: string, input: any) => {
+    setUserData((prevState) => ({ ...prevState, [input]: text }));
+  };
+
+  async function handleSubmit() {
+    if (!userData.email || !userData.password) {
       alert('Please fill out all fields.');
       return;
     }
-    console.log('submit');
+    try {
+      await firebase
+        .auth()
+        .createUserWithEmailAndPassword(userData.email, userData.password);
+      await firebase.firestore().collection('users').add(userData);
+
+      alert('Account created');
+      navigation.navigate('Login');
+    } catch (error) {
+      alert(error);
+    }
   }
 
   return (
@@ -59,7 +71,12 @@ const Register = ({ navigation }: any) => {
               <FormControlLabelText>Username</FormControlLabelText>
             </FormControlLabel>
             <Input>
-              <InputField type="text" defaultValue="" placeholder="johndoe" />
+              <InputField
+                type="text"
+                defaultValue=""
+                onChangeText={(text) => handleOnchange(text, 'username')}
+                placeholder="johndoe"
+              />
             </Input>
             <FormControlHelper>
               <FormControlHelperText>
@@ -81,6 +98,7 @@ const Register = ({ navigation }: any) => {
                 type="text"
                 defaultValue=""
                 placeholder="johndoe@example.com"
+                onChangeText={(text) => handleOnchange(text, 'email')}
               />
             </Input>
             <FormControlError>
@@ -95,7 +113,10 @@ const Register = ({ navigation }: any) => {
               <FormControlLabelText>Password</FormControlLabelText>
             </FormControlLabel>
             <Input>
-              <InputField type="password" />
+              <InputField
+                type="password"
+                onChangeText={(text) => handleOnchange(text, 'password')}
+              />
             </Input>
             <FormControlHelper>
               <FormControlHelperText>
@@ -114,7 +135,10 @@ const Register = ({ navigation }: any) => {
               <FormControlLabelText>Confirm Password</FormControlLabelText>
             </FormControlLabel>
             <Input>
-              <InputField type="password" />
+              <InputField
+                type="password"
+                onChangeText={(text) => handleOnchange(text, 'confirmPassword')}
+              />
             </Input>
             <FormControlHelper>
               <FormControlHelperText>
