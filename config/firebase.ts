@@ -7,12 +7,12 @@ import 'firebase/compat/firestore';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: 'AIzaSyB5caO25jZeSjsqLoBmiDFvwj7NplTcHA8',
-  authDomain: 'native-chat-1ae48.firebaseapp.com',
-  projectId: 'native-chat-1ae48',
-  storageBucket: 'native-chat-1ae48.appspot.com',
-  messagingSenderId: '800214412238',
-  appId: '1:800214412238:web:79cf91caa038e594e1999f',
+  apiKey: 'AIzaSyDeBedgLLGMQDAcBO9BG4Dez9Ri2boeC8w',
+  authDomain: 'native-chat-c7562.firebaseapp.com',
+  projectId: 'native-chat-c7562',
+  storageBucket: 'native-chat-c7562.appspot.com',
+  messagingSenderId: '830189822865',
+  appId: '1:830189822865:web:c2d65614e9534e48467030',
 };
 
 // Initialize Firebase

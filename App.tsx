@@ -22,14 +22,18 @@ import Chat from './screens/Chat';
 import { useEffect, useState } from 'react';
 import { firebase } from './config/firebase';
 import ActiveChatProvider from './context/active-chat-context';
-import AuthContextProvider from './context/auth-context';
+import AuthContextProvider, { useAuthContext } from './context/auth-context';
+// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
 const Stack = createNativeStackNavigator();
 
 interface HomeProps {
-  navigation: NavigationProp<any>;
+  navigation: any;
 }
 
 const Home = ({ navigation }: HomeProps) => {
+  const { user } = useAuthContext();
+
   return (
     <ScreenContainer>
       <Box
@@ -68,7 +72,7 @@ const Home = ({ navigation }: HomeProps) => {
           <Text color="$white" fontWeight="$normal">
             Welcome to our application.
           </Text>
-          <Text color="$white" fontWeight="$medium" ml="$2">
+          <Text color="$white" fontWeight="$bold" ml="$2">
             We're glad to have you here.
           </Text>
         </Box>
@@ -97,35 +101,39 @@ const Home = ({ navigation }: HomeProps) => {
             />
           </Box>
         </Box>
-        <Box
-          flexDirection="row"
-          alignItems="center"
-          justifyContent="center"
-          columnGap={8}
-        >
-          {/* Log In and Sign Up buttons */}
-          <Button
-            variant="solid"
-            action="primary"
-            bgColor="$indigo600"
-            onPress={() => navigation.navigate('Login')}
+        {!user && (
+          <Box
+            flexDirection="row"
+            alignItems="center"
+            justifyContent="center"
+            columnGap={8}
           >
-            <ButtonText>Log In</ButtonText>
-          </Button>
-          <Button
-            mt={0}
-            variant="outline"
-            onPress={() => navigation.navigate('Register')}
-            borderColor="white"
-          >
-            <ButtonText color="white">Sign Up</ButtonText>
-          </Button>
-        </Box>
+            {/* Log In and Sign Up buttons */}
+            <Button
+              variant="solid"
+              size="sm"
+              action="primary"
+              bgColor="$indigo600"
+              onPress={() => navigation.navigate('Login')}
+            >
+              <ButtonText>Login</ButtonText>
+            </Button>
+            <Button
+              mt={0}
+              variant="outline"
+              size="sm"
+              onPress={() => navigation.navigate('Register')}
+              borderColor="white"
+            >
+              <ButtonText color="white">Create Account</ButtonText>
+            </Button>
+          </Box>
+        )}
       </Box>
     </ScreenContainer>
   );
 };
-
+export { Home };
 export default function App() {
   const [initializing, setInitializing] = useState<Boolean>(true);
   const [user, setUser] = useState<any>();
@@ -156,12 +164,12 @@ export default function App() {
               <Stack.Screen
                 name="Login"
                 component={Login}
-                options={{ headerShown: false }}
+                options={{ headerShown: true }}
               />
               <Stack.Screen
                 name="Register"
                 component={Register}
-                options={{ headerShown: false }}
+                options={{ headerShown: true }}
               />
               <Stack.Screen name="Users" component={Users} />
               <Stack.Screen name="Profile" component={Profile} />

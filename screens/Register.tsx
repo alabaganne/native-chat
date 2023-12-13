@@ -34,20 +34,32 @@ const Register = ({ navigation }: any) => {
   };
 
   async function handleSubmit() {
-    if (!userData.email || !userData.password) {
+    if (!userData.username || !userData.email || !userData.password) {
       alert('Please fill out all fields.');
+      return;
+    }
+    if (userData.password !== userData.confirmPassword) {
+      alert('Passwords do not match.');
       return;
     }
     try {
       await firebase
         .auth()
-        .createUserWithEmailAndPassword(userData.email, userData.password);
-      await firebase.firestore().collection('users').add(userData);
+        .createUserWithEmailAndPassword(
+          userData.email.toLowerCase(),
+          userData.password
+        );
+      await firebase.firestore().collection('users').add({
+        username: userData.username.toLowerCase(),
+        email: userData.email.toLowerCase(),
+        password: userData.password,
+      });
 
       alert('Account created');
       navigation.navigate('Login');
     } catch (error) {
-      alert(error);
+      console.log(error);
+      alert('Email already exists.');
     }
   }
 

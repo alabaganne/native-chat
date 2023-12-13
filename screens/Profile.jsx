@@ -17,18 +17,53 @@ import {
   Icon,
   DownloadIcon,
 } from '@gluestack-ui/themed';
-import React from 'react';
+import React, { useEffect } from 'react';
 import ScreenContainer from '../components/ScreenContainer';
 import FeatureCard from '../components/FeatureCard';
 import { FormControlHelperText } from '@gluestack-ui/themed';
 
 import * as ImagePicker from 'expo-image-picker';
 import { Image, Pressable } from 'react-native';
+import { useAuthContext } from '../context/auth-context';
+import { useNavigation } from '@react-navigation/native';
+import { firebase } from '../config/firebase';
 
-const Profile = ({ navigation }) => {
-  function handleSubmit() {
-    console.log('submit');
+const Profile = () => {
+  const { user, setUser } = useAuthContext();
+  const navigation = useNavigation();
+  const [userData, setUserData] = React.useState({
+    username: '',
+    email: '',
+    password: '',
+  });
+  async function handleSubmit() {
+    let userCollection = firebase.firestore().collection('users');
+
+    let data = {
+      username: userData.username,
+      email: userData.email,
+    };
+    if (userData.password && userData.password.length > 8) {
+      data.password = userData.password;
+    }
+    if (userData.password && userData.password.length < 8) {
+      alert('Password must be at least 8 characters long.');
+      return;
+    }
+
+    console.log('user.uid', user.uid);
+    // await userCollection.doc(user.uid).set(data);
+    // setUser({ ...user, ...data });
+    alert('Profile updated successfully!');
   }
+
+  useEffect(() => {
+    setUserData({
+      username: user.username,
+      email: user.email,
+      password: user.password,
+    });
+  }, []);
 
   const [image, setImage] = React.useState(null);
 
@@ -49,7 +84,7 @@ const Profile = ({ navigation }) => {
   };
 
   return (
-    <ScreenContainer>
+    <ScreenContainer navigation={navigation}>
       <Box height="100%" alignItems="center" justifyContent="center">
         <FeatureCard
           name="Profile"
@@ -93,7 +128,14 @@ const Profile = ({ navigation }) => {
               <FormControlLabelText>Username</FormControlLabelText>
             </FormControlLabel>
             <Input>
-              <InputField type="text" defaultValue="" placeholder="johndoe" />
+              <InputField
+                type="text"
+                value={userData.username}
+                onChangeText={(text) => {
+                  setUserData({ ...userData, username: text });
+                }}
+                placeholder="johndoe"
+              />
             </Input>
             <FormControlError>
               <FormControlErrorIcon as={AlertCircleIcon} />
@@ -108,8 +150,11 @@ const Profile = ({ navigation }) => {
             <Input>
               <InputField
                 type="text"
-                defaultValue=""
+                value={userData.email}
                 placeholder="johndoe@example.com"
+                onChangeText={(text) => {
+                  setUserData({ ...userData, email: text });
+                }}
               />
             </Input>
             <FormControlError>
@@ -124,7 +169,16 @@ const Profile = ({ navigation }) => {
               <FormControlLabelText>Password</FormControlLabelText>
             </FormControlLabel>
             <Input>
-              <InputField type="password" />
+              <InputField
+                type="password"
+                value={userData.password}
+                onChangeText={(text) =>
+                  setUserData({
+                    ...userData,
+                    password: text,
+                  })
+                }
+              />
             </Input>
             <FormControlHelper>
               <FormControlHelperText>

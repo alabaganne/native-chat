@@ -17,15 +17,14 @@ import {
   collection,
   onSnapshot,
   orderBy,
-  getDocs,
   where,
 } from 'firebase/firestore';
 import { useAuthContext } from '../context/auth-context';
 
 interface Message {
-  email: string;
   content: string;
-  sender: string;
+  senderEmail: string;
+  receiverEmail: string;
   createdAt: Date;
 }
 
@@ -36,16 +35,19 @@ const Chat = () => {
   const { user } = useAuthContext();
   function sendMessage() {
     const newMessageData = {
-      email: activeChat.email,
+      senderEmail: user.email,
+      receiverEmail: activeChat.email, // Use the user object from the auth context
       content: newMessage,
-      sender: user, // Use the user object from the auth context
       createdAt: new Date(),
     };
+    console.log('newMessageData', newMessageData);
 
     setMessages([...messages, newMessageData]);
 
     // Add the new message to Firebase
     addMessageToFirebase(newMessageData);
+
+    setNewMessage('');
   }
 
   const addMessageToFirebase = async (messageData: Message) => {
@@ -59,18 +61,40 @@ const Chat = () => {
 
   useLayoutEffect(() => {
     const collectionRef = collection(firebase.firestore(), 'messages');
-    const q = query(collectionRef, orderBy('createdAt', 'asc'));
+    const q = query(
+      collectionRef,
+      orderBy('createdAt', 'asc')
+      // or(
+      //   and(
+      //     or(
+      //       where('senderEmail', '==', user.email),
+      //       where('receiverEmail', '==', user.email)
+      //     ),
+      //     or(
+      //       where('senderEmail', '==', activeChat.email),
+      //       where('receiverEmail', '==', activeChat.email)
+      //     )
+      //   )
+      // )
+    );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const updatedMessages: Message[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        updatedMessages.push({
-          email: data.email,
-          content: data.content,
-          createdAt: new Date(data.createdAt.seconds * 1000), // Convert Firestore timestamp to JavaScript Date
-          sender: data.sender,
-        });
+        if (
+          (data.senderEmail == user.email &&
+            data.receiverEmail == activeChat.email) ||
+          (data.senderEmail == activeChat.email &&
+            data.receiverEmail == user.email)
+        ) {
+          updatedMessages.push({
+            senderEmail: data.senderEmail,
+            receiverEmail: data.receiverEmail,
+            content: data.content,
+            createdAt: new Date(data.createdAt.seconds * 1000),
+          });
+        }
       });
       setMessages(updatedMessages);
     });
@@ -80,14 +104,20 @@ const Chat = () => {
 
   return (
     <ScreenContainer>
-      <ScrollView h="90%" gap={10}>
+      <Text size="sm" color="$white">
+        Chatting with{' '}
+        <Text size="sm" fontWeight="bold" color="$indigo200">
+          {activeChat.email}
+        </Text>
+      </Text>
+      <ScrollView gap={10} mt="$4">
         {messages.map((message) => (
           <Text
             key={message.createdAt.getTime()}
             color="$white"
             fontWeight="700"
           >
-            {message.sender}:{' '}
+            {message.senderEmail}:{' '}
             <Text color="$textDark300" size="sm">
               {message.content}
             </Text>
@@ -95,7 +125,6 @@ const Chat = () => {
         ))}
       </ScrollView>
       <Box
-        flex={1}
         flexDirection="row"
         alignItems="center"
         justifyContent="center"

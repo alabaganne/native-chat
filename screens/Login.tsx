@@ -23,26 +23,38 @@ import { FormControlError } from '@gluestack-ui/themed';
 import { FormControlLabelText } from '@gluestack-ui/themed';
 import { firebase } from '../config/firebase';
 import { useAuthContext } from '../context/auth-context';
-const Login = ({ navigation }: any) => {
+import { useNavigation } from '@react-navigation/native';
+
+const auth = firebase.auth();
+
+const Login = () => {
+  const navigation: any = useNavigation();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   let { setUser } = useAuthContext();
 
   async function handleSubmit() {
-    // if (!user.email || !user.password) {
-    //   alert('Please fill out all fields.');
-    //   return;
-    // }
-    console.log(email, password);
-    try {
-      const result = await firebase
-        .auth()
-        .signInWithEmailAndPassword(email, password);
-      setUser(email);
-      navigation.navigate('Users');
-    } catch (error) {
-      alert(error);
+    if (!email || !password) {
+      alert('Please fill out all fields.');
+      return;
     }
+    auth
+      .signInWithEmailAndPassword(email.toLowerCase(), password)
+      .then(async function (res) {
+        console.log('uid', res.user?.uid);
+        const u = await firebase
+          .firestore()
+          .collection('users')
+          .doc(res.user?.uid)
+          .get();
+        console.log('u', u.data());
+        setUser(auth.currentUser);
+        navigation.navigate('Users');
+      })
+      .catch(function (error) {
+        console.log('error', error);
+        alert('Invalid credentials.');
+      });
   }
 
   return (
@@ -67,7 +79,7 @@ const Login = ({ navigation }: any) => {
             <Input>
               <InputField
                 type="text"
-                defaultValue={email}
+                value={email}
                 onChangeText={(text) => setEmail(text)}
                 placeholder="johndoe@example.com"
               />
@@ -86,6 +98,7 @@ const Login = ({ navigation }: any) => {
             <Input>
               <InputField
                 type="password"
+                value={password}
                 onChangeText={(text) => setPassword(text)}
               />
             </Input>
